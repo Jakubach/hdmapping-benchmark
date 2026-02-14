@@ -1,0 +1,10 @@
+# Input data (large files, download link in README)
+data/
+
+# Benchmark results (generated per-run)
+outputs/
+
+# Cloned external repositories (instructions in README)
+benchmarks/
+livox_bag_aggregate/
+mandeye_to_bag/
