@@ -4,8 +4,9 @@ data/
 # Benchmark results (generated per-run)
 outputs/
 
-# Local-only scripts
+# Local-only files
 monitor.sh
+benchmark_description.*
 
 # Cloned external repositories (instructions in README)
 benchmarks/
