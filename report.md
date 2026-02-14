@@ -152,7 +152,32 @@ Docker's overlay filesystem cannot remove directories created in a previous laye
 
 ---
 
-## 4. iG-LIO: rviz `required="true"` kills roslaunch in headless Docker
+## 4. SLICT: `catkin clean` fails across Docker layers
+
+**File:** `benchmark-SLICT-to-HDMapping/Dockerfile`
+
+**Symptom:** Docker build fails at step 94 with:
+```
+[clean] Failed to clean profile `default`
+OSError: [Errno 22] Invalid argument: 'atomic_configure'
+```
+
+**Root cause:** Same class of issue as CT-ICP (#3). Step 76–77 runs `catkin build` in `/ws_livox`, creating a build directory. Step 94–98 runs `catkin clean -y` which calls `shutil.rmtree` on `/ws_livox/build`. Docker's overlay filesystem cannot remove directories created in a previous layer — `rmtree` fails with "Invalid argument".
+
+**Fix:** Remove `catkin clean -y` and use `--force-cmake` to reconfigure without deleting the old build:
+
+```diff
+ RUN source /opt/ros/noetic/setup.bash && \
+     catkin init && \
+     catkin config --extend /ws_livox2/devel && \
+-    catkin clean -y && \
+-    catkin build
++    catkin build --force-cmake
+```
+
+---
+
+## 5. iG-LIO: rviz `required="true"` kills roslaunch in headless Docker
 
 **Files:** `benchmark-iG-LIO-to-HDMapping/src/ig_lio/launch/lio_avia.launch` (and 5 other launch files)
 
@@ -183,7 +208,7 @@ find "$REPO_DIR" -name "*.launch" -exec \
 
 ---
 
-## 5. iG-LIO: permission denied on result directory + hardcoded host path
+## 6. iG-LIO: permission denied on result directory + hardcoded host path
 
 **Files:**
 - `benchmark-iG-LIO-to-HDMapping/Dockerfile`
