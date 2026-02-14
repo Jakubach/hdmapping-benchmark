@@ -162,17 +162,28 @@ Docker's overlay filesystem cannot remove directories created in a previous laye
 OSError: [Errno 22] Invalid argument: 'atomic_configure'
 ```
 
-**Root cause:** Same class of issue as CT-ICP (#3). Step 76–77 runs `catkin build` in `/ws_livox`, creating a build directory. Step 94–98 runs `catkin clean -y` which calls `shutil.rmtree` on `/ws_livox/build`. Docker's overlay filesystem cannot remove directories created in a previous layer — `rmtree` fails with "Invalid argument".
+**Root cause:** Same class of issue as CT-ICP (#3). Step 76–77 runs `catkin build` in `/ws_livox`, creating build and devel directories. Step 94–98 runs `catkin clean -y` which calls `shutil.rmtree` on `/ws_livox/build`. Docker's overlay filesystem cannot remove directories created in a previous layer — `rmtree` fails with "Invalid argument". Additionally, even if the clean were skipped, the devel-space `setup.bash` files generated in step 76 (without `--extend /ws_livox2/devel`) cannot be overwritten by a later `--force-cmake` rebuild, causing `livox_ros_driver2` to be invisible to downstream packages.
 
-**Fix:** Remove `catkin clean -y` and use `--force-cmake` to reconfigure without deleting the old build:
+**Fix:** Remove the first premature `catkin build` of `/ws_livox` (step 76–77) entirely. Build `/ws_livox2` first, then build `/ws_livox` once with the correct `--extend` configuration:
 
 ```diff
+ WORKDIR /ws_livox
+-
+-RUN source /opt/ros/noetic/setup.bash && \
+-    catkin build
+
+ RUN mkdir -p /ws_livox2/src
+ ...
+ RUN source /opt/ros/noetic/setup.bash && \
+     ./src/livox_ros_driver2/build.sh ROS1
+
+ WORKDIR /ws_livox
+
  RUN source /opt/ros/noetic/setup.bash && \
      catkin init && \
      catkin config --extend /ws_livox2/devel && \
 -    catkin clean -y && \
--    catkin build
-+    catkin build --force-cmake
+     catkin build
 ```
 
 ---
