@@ -25,6 +25,7 @@
 - `benchmark-DLO-to-HDMapping/Dockerfile`
 - `benchmark-FAST-LIO-to-HDMapping/Dockerfile`
 - `benchmark-Faster-LIO-to-HDMapping/Dockerfile`
+- `benchmark-VoxelMap-to-HDMapping/Dockerfile`
 
 **Symptom:** Docker build fails at step 5/19 with:
 ```

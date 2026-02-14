@@ -11,7 +11,7 @@ See [report.md](report.md) for known build issues and fixes found during testing
 sudo apt install -y docker.io
 sudo usermod -aG docker $USER
 
-# rosbags (for --ros2 and --resple flags)
+# rosbags (for --ros2 and --livox-ros2 conversions)
 pip install rosbags
 
 # Clone conversion tools
@@ -47,7 +47,7 @@ cd ~/hdmapping-benchmark
 ## Preparing Data
 
 ```bash
-./prepare_benchmark_data.sh [--ros1] [--ros2] [--resple] [--all] <input.bag> [output_dir]
+./prepare_benchmark_data.sh [--ros1] [--ros2] [--livox-ros2] [--all] <input.bag> [output_dir]
 ```
 
 | Argument | Description |
@@ -56,7 +56,7 @@ cd ~/hdmapping-benchmark
 | `[output_dir]` | Output directory (default: same as input bag) |
 | `--ros1` | Generate PointCloud2 ROS1 bag (via livox_bag_aggregate Docker) |
 | `--ros2` | Generate PointCloud2 ROS2 bag (via rosbags-convert, requires `--ros1`) |
-| `--resple` | Generate RESPLE-specific ROS2 (via mandeye_to_bag Docker + rosbags-convert) |
+| `--livox-ros2` | Generate Livox CustomMsg ROS2 bag (via mandeye_to_bag Docker + rosbags-convert) |
 | `--all` | All of the above |
 
 ## Data Formats
@@ -68,7 +68,7 @@ The input dataset (`reg-1.bag`) uses Livox `CustomMsg`. Different algorithms exp
 | Livox CustomMsg (ROS1) | `reg-1.bag` | *(original)* | none |
 | PointCloud2 (ROS1) | `reg-1.bag-pc.bag` | `--ros1` | [livox_bag_aggregate](https://github.com/MapsHD/livox_bag_aggregate) Docker |
 | PointCloud2 (ROS2) | `reg-1-ros2/` | `--ros2` | [rosbags](https://pypi.org/project/rosbags/) (`pip install rosbags`) |
-| RESPLE-specific (ROS2) | `reg-1-ros2-lidar/` | `--resple` | [mandeye_to_bag](https://github.com/MapsHD/mandeye_to_bag) Docker |
+| Livox CustomMsg (ROS2) | `reg-1-ros2-lidar/` | `--livox-ros2` | [mandeye_to_bag](https://github.com/MapsHD/mandeye_to_bag) Docker + [rosbags](https://pypi.org/project/rosbags/) |
 
 ## Benchmark Input Data Requirements
 
@@ -90,7 +90,7 @@ The input dataset (`reg-1.bag`) uses Livox `CustomMsg`. Different algorithms exp
 | 14 | [KISS-ICP](https://github.com/MapsHD/benchmark-KISS-ICP-to-HDMapping) | 2023 | RA-L | 2 | PointCloud2 ROS2 | `data/reg-1-ros2` | `--ros1 --ros2` | [link](https://youtu.be/GyB8UuQN0Io) |
 | 15 | [GenZ-ICP](https://github.com/MapsHD/benchmark-GenZ-ICP-to-HDMapping) | 2025 | RA-L | 2 | PointCloud2 ROS2 | `data/reg-1-ros2` | `--ros1 --ros2` | [link](https://youtu.be/vgGkucOBVg4) |
 | 16 | [GLIM](https://github.com/MapsHD/benchmark-GLIM-to-HDMapping) | 2024 | arXiv | 2 | PointCloud2 ROS2 | `data/reg-1-ros2` | `--ros1 --ros2` | [link](https://youtu.be/zyZDJECqOG0) |
-| 17 | [RESPLE](https://github.com/MapsHD/benchmark-RESPLE-to-HDMapping) | 2025 | RA-L | 2 | RESPLE-specific ROS2 | `data/reg-1-ros2-lidar` | `--resple` | [link](https://youtu.be/5PAB4xJmMoo) |
+| 17 | [RESPLE](https://github.com/MapsHD/benchmark-RESPLE-to-HDMapping) | 2025 | RA-L | 2 | Livox CustomMsg ROS2 | `data/reg-1-ros2-lidar` | `--livox-ros2` | [link](https://youtu.be/5PAB4xJmMoo) |
 
 ## Recommended Execution Order
 
@@ -128,7 +128,7 @@ group benchmarks by base image and run them in this order:
 ./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping        data/reg-1-ros2
 ```
 
-**Group 4 — ROS2 Humble, RESPLE-specific** (requires `--resple`):
+**Group 4 — ROS2 Humble, Livox CustomMsg** (requires `--livox-ros2`):
 
 ```bash
 ./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping      data/reg-1-ros2-lidar
@@ -327,7 +327,7 @@ cd ~/hdmapping-benchmark
 <summary>17. RESPLE</summary>
 
 ```bash
-# Requires: ./prepare_benchmark_data.sh --resple data/reg-1.bag
+# Requires: ./prepare_benchmark_data.sh --livox-ros2 data/reg-1.bag
 cd ~/hdmapping-benchmark/benchmarks && git clone https://github.com/MapsHD/benchmark-RESPLE-to-HDMapping.git --recursive
 cd ~/hdmapping-benchmark
 ./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping data/reg-1-ros2-lidar
@@ -358,7 +358,7 @@ hdmapping-benchmark/
 │   ├── reg-1.bag                # Original Livox CustomMsg (ROS1)
 │   ├── reg-1.bag-pc.bag         # PointCloud2 (ROS1)        [--ros1]
 │   ├── reg-1-ros2/              # PointCloud2 (ROS2)        [--ros2]
-│   └── reg-1-ros2-lidar/        # RESPLE-specific (ROS2)    [--resple]
+│   └── reg-1-ros2-lidar/        # Livox CustomMsg (ROS2)    [--livox-ros2]
 ├── benchmarks/                  # Cloned benchmark repos
 │   ├── benchmark-FAST-LIO-to-HDMapping/
 │   ├── benchmark-KISS-ICP-to-HDMapping/

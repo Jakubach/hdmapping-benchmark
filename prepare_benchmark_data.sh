@@ -7,7 +7,7 @@ set -e
 # Converts a Livox CustomMsg ROS1 bag into standardized formats:
 #   --ros1    PointCloud2 ROS1 bag   (livox_bag_aggregate Docker)
 #   --ros2    PointCloud2 ROS2 bag   (rosbags-convert, requires --ros1 first)
-#   --resple  RESPLE-specific ROS2   (mandeye_to_bag Docker + rosbags-convert)
+#   --livox-ros2  Livox CustomMsg ROS2   (mandeye_to_bag Docker + rosbags-convert)
 #   --all     All of the above
 #
 # Without flags, only copies the original bag (Livox CustomMsg ROS1).
@@ -15,20 +15,20 @@ set -e
 # Requirements:
 #   --ros1    Docker + livox_bag_aggregate_noetic image
 #   --ros2    pip install rosbags
-#   --resple  Docker + mandeye-ws_noetic & mandeye-ws_humble images
+#   --livox-ros2  Docker + mandeye-ws_noetic & mandeye-ws_humble images
 #
 # Usage:
-#   ./prepare_benchmark_data.sh [--ros1] [--ros2] [--resple] [--all] <input.bag> [output_dir]
+#   ./prepare_benchmark_data.sh [--ros1] [--ros2] [--livox-ros2] [--all] <input.bag> [output_dir]
 #
 # Examples:
 #   ./prepare_benchmark_data.sh --all data/reg-1.bag
 #   ./prepare_benchmark_data.sh --ros1 --ros2 data/reg-1.bag
-#   ./prepare_benchmark_data.sh --resple data/reg-1.bag
+#   ./prepare_benchmark_data.sh --livox-ros2 data/reg-1.bag
 #
 
 DO_ROS1=false
 DO_ROS2=false
-DO_RESPLE=false
+DO_LIVOX_ROS2=false
 
 # --- Parse arguments ---
 POSITIONAL=()
@@ -36,8 +36,8 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --ros1)   DO_ROS1=true;   shift ;;
         --ros2)   DO_ROS2=true;   shift ;;
-        --resple) DO_RESPLE=true; shift ;;
-        --all)    DO_ROS1=true; DO_ROS2=true; DO_RESPLE=true; shift ;;
+        --livox-ros2) DO_LIVOX_ROS2=true; shift ;;
+        --all)    DO_ROS1=true; DO_ROS2=true; DO_LIVOX_ROS2=true; shift ;;
         -h|--help)
             sed -n '3,30s/^# \?//p' "$0"
             exit 0
@@ -50,12 +50,12 @@ INPUT_BAG="${POSITIONAL[0]}"
 OUTPUT_DIR="${POSITIONAL[1]}"
 
 if [ -z "$INPUT_BAG" ]; then
-    echo "Usage: $0 [--ros1] [--ros2] [--resple] [--all] <input.bag> [output_dir]"
+    echo "Usage: $0 [--ros1] [--ros2] [--livox-ros2] [--all] <input.bag> [output_dir]"
     echo ""
     echo "Flags:"
     echo "  --ros1    Generate PointCloud2 ROS1 bag  (via livox_bag_aggregate Docker)"
     echo "  --ros2    Generate PointCloud2 ROS2 bag  (via rosbags-convert, requires --ros1)"
-    echo "  --resple  Generate RESPLE-specific ROS2  (via mandeye_to_bag Docker)"
+    echo "  --livox-ros2  Generate Livox CustomMsg ROS2  (via mandeye_to_bag Docker)"
     echo "  --all     Generate all of the above"
     echo "  (no flag) Only copy the original Livox CustomMsg bag"
     exit 1
@@ -82,7 +82,7 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ($DO_ROS2 || $DO_RESPLE) && ! command -v rosbags-convert &> /dev/null; then
+if ($DO_ROS2 || $DO_LIVOX_ROS2) && ! command -v rosbags-convert &> /dev/null; then
     echo "ERROR: rosbags-convert not found. Install with: pip install rosbags"
     exit 1
 fi
@@ -113,7 +113,7 @@ echo " LiDAR bag data preparation"
 echo "============================================"
 echo "Input:  $INPUT_BAG"
 echo "Output: $OUTPUT_DIR"
-echo "Flags:  ros1=$DO_ROS1  ros2=$DO_ROS2  resple=$DO_RESPLE"
+echo "Flags:  ros1=$DO_ROS1  ros2=$DO_ROS2  resple=$DO_LIVOX_ROS2"
 echo ""
 
 # --- Step 0: Copy original (always) ---
@@ -162,9 +162,9 @@ if $DO_ROS2; then
     echo ""
 fi
 
-# --- Step 3: --resple (special conversion via mandeye_to_bag) ---
-if $DO_RESPLE; then
-    echo "[--resple] Converting for RESPLE (mandeye_to_bag)..."
+# --- Step 3: --livox-ros2 (special conversion via mandeye_to_bag) ---
+if $DO_LIVOX_ROS2; then
+    echo "[--livox-ros2] Converting Livox CustomMsg ROS1 -> ROS2 (mandeye_to_bag)..."
     if [ -d "$OUTPUT_DIR/${BASENAME}-ros2-lidar" ]; then
         echo "  Already exists, skipping."
     else
@@ -217,6 +217,6 @@ echo ""
 [ -f "$OUTPUT_DIR/$BASENAME.bag" ]             && echo "  $BASENAME.bag              (Livox CustomMsg, ROS1)"
 [ -f "$OUTPUT_DIR/$BASENAME.bag-pc.bag" ]      && echo "  $BASENAME.bag-pc.bag       (PointCloud2, ROS1)"
 [ -d "$OUTPUT_DIR/${BASENAME}-ros2" ]          && echo "  ${BASENAME}-ros2/          (PointCloud2, ROS2)"
-[ -d "$OUTPUT_DIR/${BASENAME}-ros2-lidar" ]    && echo "  ${BASENAME}-ros2-lidar/    (RESPLE, ROS2)"
+[ -d "$OUTPUT_DIR/${BASENAME}-ros2-lidar" ]    && echo "  ${BASENAME}-ros2-lidar/    (Livox CustomMsg, ROS2)"
 echo ""
 echo "See README.md for which benchmarks use which format."
