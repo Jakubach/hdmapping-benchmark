@@ -2,6 +2,8 @@
 
 Reproducible testing of LiDAR odometry/SLAM algorithms integrated with [HDMapping](https://github.com/MapsHD/HDMapping).
 
+See [report.md](report.md) for known build issues and fixes found during testing.
+
 ## Prerequisites
 
 ```bash
