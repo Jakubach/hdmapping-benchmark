@@ -16,9 +16,9 @@
 
 ---
 
-## 1. libcurl conflict in mandeye_to_bag Dockerfile
+## 1. libcurl conflict caused by libpcl-dev placement
 
-**Files:**
+**Files (all 17 benchmark Dockerfiles + mandeye_to_bag):**
 - `mandeye_to_bag/Dockerfile` (ros1 stage)
 - `benchmark-CT-ICP-to-HDMapping/Dockerfile`
 - `benchmark-DLIO-to-HDMapping/Dockerfile`
@@ -26,6 +26,17 @@
 - `benchmark-FAST-LIO-to-HDMapping/Dockerfile`
 - `benchmark-Faster-LIO-to-HDMapping/Dockerfile`
 - `benchmark-VoxelMap-to-HDMapping/Dockerfile`
+- `benchmark-I2EKF-LO-to-HDMapping/Dockerfile`
+- `benchmark-iG-LIO-to-HDMapping/Dockerfile`
+- `benchmark-Point-LIO-to-HDMapping/Dockerfile`
+- `benchmark-SLICT-to-HDMapping/Dockerfile`
+- `benchmark-LIO-EKF-to-HDMapping/Dockerfile`
+- `benchmark-LOAM-Livox-to-HDMapping/Dockerfile`
+- `benchmark-LeGO-LOAM-to-HDMapping/Dockerfile`
+- `benchmark-GenZ-ICP-to-HDMapping/Dockerfile` (ROS 2)
+- `benchmark-GLIM-to-HDMapping/Dockerfile` (ROS 2)
+- `benchmark-KISS-ICP-to-HDMapping/Dockerfile` (ROS 2)
+- `benchmark-RESPLE-to-HDMapping/Dockerfile` (ROS 2)
 
 **Symptom:** Docker build fails at step 5/19 with:
 ```
