@@ -6,31 +6,49 @@ set -e
 #
 # Checks out the dataset branch, builds the Docker image, and runs the benchmark.
 #
+# Options:
+#   --build-only  Only checkout branch and build Docker image, skip execution
+#
 # Usage:
-#   ./run_benchmark.sh <benchmark_dir> <input> [output_dir]
+#   ./run_benchmark.sh [--build-only] <benchmark_dir> <input> [output_dir]
 #
 # Examples:
 #   ./run_benchmark.sh benchmarks/benchmark-FAST-LIO-to-HDMapping data/reg-1.bag
 #   ./run_benchmark.sh benchmarks/benchmark-CT-ICP-to-HDMapping data/reg-1.bag-pc.bag
-#   ./run_benchmark.sh benchmarks/benchmark-KISS-ICP-to-HDMapping data/reg-1-ros2
-#   ./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping data/reg-1-ros2-lidar
+#   ./run_benchmark.sh --build-only benchmarks/benchmark-KISS-ICP-to-HDMapping
 #
 
 BRANCH="Bunker-DVI-Dataset-reg-1"
+BUILD_ONLY=false
 
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-    echo "Usage: $0 <benchmark_dir> <input> [output_dir]"
-    echo ""
-    echo "  <benchmark_dir>  Path to a benchmark-*-to-HDMapping repo"
-    echo "  <input>          Input bag file or directory"
-    echo "  <output_dir>     Output directory for results (default: outputs)"
-    exit 1
+# --- Parse flags ---
+while [[ $# -gt 0 && "$1" == --* ]]; do
+    case $1 in
+        --build-only) BUILD_ONLY=true; shift ;;
+        *) echo "Unknown option: $1"; exit 1 ;;
+    esac
+done
+
+if $BUILD_ONLY; then
+    if [ $# -lt 1 ] || [ $# -gt 1 ]; then
+        echo "Usage: $0 --build-only <benchmark_dir>"
+        echo ""
+        echo "  <benchmark_dir>  Path to a benchmark-*-to-HDMapping repo"
+        exit 1
+    fi
+else
+    if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+        echo "Usage: $0 [--build-only] <benchmark_dir> <input> [output_dir]"
+        echo ""
+        echo "  --build-only     Only checkout and build, skip benchmark execution"
+        echo "  <benchmark_dir>  Path to a benchmark-*-to-HDMapping repo"
+        echo "  <input>          Input bag file or directory"
+        echo "  <output_dir>     Output directory for results (default: outputs)"
+        exit 1
+    fi
 fi
 
 REPO_DIR=$(realpath "$1")
-INPUT=$(realpath "$2")
-OUTPUT_DIR=$(realpath "${3:-outputs}")
-
 REPO_NAME=$(basename "$REPO_DIR")
 NAME=$(echo "$REPO_NAME" | sed 's/^benchmark-//; s/-to-HDMapping$//')
 
@@ -40,24 +58,31 @@ if [ ! -d "$REPO_DIR" ]; then
     exit 1
 fi
 
-if [ ! -f "$INPUT" ] && [ ! -d "$INPUT" ]; then
-    echo "ERROR: Input not found: $INPUT"
-    exit 1
-fi
-
 if ! command -v docker &> /dev/null; then
     echo "ERROR: Docker is not installed"
     exit 1
 fi
 
-mkdir -p "$OUTPUT_DIR"
+if ! $BUILD_ONLY; then
+    INPUT=$(realpath "$2")
+    OUTPUT_DIR=$(realpath "${3:-outputs}")
+
+    if [ ! -f "$INPUT" ] && [ ! -d "$INPUT" ]; then
+        echo "ERROR: Input not found: $INPUT"
+        exit 1
+    fi
+
+    mkdir -p "$OUTPUT_DIR"
+fi
 
 echo "========================================"
 echo " $NAME"
 echo "========================================"
 echo "Repo:   $REPO_DIR"
-echo "Input:  $INPUT"
-echo "Output: $OUTPUT_DIR"
+if ! $BUILD_ONLY; then
+    echo "Input:  $INPUT"
+    echo "Output: $OUTPUT_DIR"
+fi
 echo ""
 
 # --- Checkout branch ---
@@ -88,6 +113,12 @@ echo ">> Building Docker image: $DOCKER_TAG ..."
 if ! docker build -t "$DOCKER_TAG" .; then
     echo "ERROR: Docker build failed for $NAME"
     exit 1
+fi
+
+if $BUILD_ONLY; then
+    echo ""
+    echo ">> Build complete: $NAME (--build-only, skipping execution)"
+    exit 0
 fi
 
 # --- Run ---

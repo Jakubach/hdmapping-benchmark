@@ -143,14 +143,36 @@ group benchmarks by base image and run them in this order:
 Each benchmark uses the `Bunker-DVI-Dataset-reg-1` branch with Docker-based workflow.
 
 ```bash
-./run_benchmark.sh <benchmark_dir> <input> [output_dir]
+./run_benchmark.sh [--build-only] <benchmark_dir> [input] [output_dir]
 ```
 
 | Argument | Description |
 |----------|-------------|
+| `--build-only` | Only checkout branch and build Docker image, skip execution |
 | `<benchmark_dir>` | Path to a `benchmark-*-to-HDMapping` repo |
-| `<input>` | Input bag file or directory (see table above) |
+| `<input>` | Input bag file or directory (see table above; not needed with `--build-only`) |
 | `[output_dir]` | Output directory for results (default: `outputs/`) |
+
+### Parallel Builds
+
+Benchmarks cannot run in parallel (ROS master port conflicts, shared `/clock` topic),
+but Docker images can be built in parallel using `--build-only`:
+
+```bash
+# Build all images in parallel (no input data needed)
+./run_benchmark.sh --build-only benchmarks/benchmark-FAST-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-Faster-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-VoxelMap-to-HDMapping &
+wait
+
+# Then run sequentially
+./run_benchmark.sh benchmarks/benchmark-FAST-LIO-to-HDMapping   data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-Faster-LIO-to-HDMapping data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-VoxelMap-to-HDMapping   data/reg-1.bag
+```
+
+This is especially useful when rebuilding images after Dockerfile fixes, as it
+reduces the total build time significantly.
 
 ### Per-Benchmark Commands
 
