@@ -14,8 +14,8 @@ set -e
 #
 # Requirements:
 #   --ros1    Docker + livox_bag_aggregate_noetic image
-#   --ros2    pip install rosbags
-#   --livox-ros2  Docker + mandeye-ws_noetic & mandeye-ws_humble images
+#   --ros2    Docker + rosbags-convert image (built automatically)
+#   --livox-ros2  Docker + mandeye-ws_noetic & mandeye-ws_humble & rosbags-convert images
 #
 # Usage:
 #   ./prepare_benchmark_data.sh [--ros1] [--ros2] [--livox-ros2] [--all] <input.bag> [output_dir]
@@ -82,9 +82,19 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ($DO_ROS2 || $DO_LIVOX_ROS2) && ! command -v rosbags-convert &> /dev/null; then
-    echo "ERROR: rosbags-convert not found. Install with: pip install rosbags"
-    exit 1
+ROSBAGS_IMAGE="rosbags-convert"
+if $DO_ROS2 || $DO_LIVOX_ROS2; then
+    if ! docker image inspect "$ROSBAGS_IMAGE" &> /dev/null; then
+        echo "Building Docker image $ROSBAGS_IMAGE..."
+        # rosbags 0.9.22 generates metadata.yaml version 5, compatible with
+        # Humble, Iron, and Jazzy. Newer rosbags (0.10+) generates version 8-9
+        # which only Jazzy supports.
+        docker build -t "$ROSBAGS_IMAGE" - <<'DOCKERFILE'
+FROM python:3.10-slim
+RUN pip install --no-cache-dir rosbags==0.9.22
+ENTRYPOINT ["rosbags-convert"]
+DOCKERFILE
+    fi
 fi
 
 if $DO_ROS2 && ! $DO_ROS1; then
@@ -155,7 +165,8 @@ if $DO_ROS2; then
             exit 1
         fi
         CURRENT_OUTPUT="$OUTPUT_DIR/${BASENAME}-ros2"
-        rosbags-convert --src "$OUTPUT_DIR/$BASENAME.bag-pc.bag" --dst "$OUTPUT_DIR/${BASENAME}-ros2"
+        docker run --rm -v "$OUTPUT_DIR":/data "$ROSBAGS_IMAGE" \
+            --src "/data/$BASENAME.bag-pc.bag" --dst "/data/${BASENAME}-ros2"
         CURRENT_OUTPUT=""
     fi
     echo "  -> $OUTPUT_DIR/${BASENAME}-ros2/"
@@ -202,7 +213,9 @@ if $DO_LIVOX_ROS2; then
         if [ -f "$BAG_FILE" ] && [ ! -f "${BAG_FILE}.bag" ]; then
             mv "$BAG_FILE" "${BAG_FILE}.bag"
         fi
-        rosbags-convert --src "${BAG_FILE}.bag" --dst "$OUTPUT_DIR/${BASENAME}-ros2-lidar"
+        docker run --rm -v "$OUTPUT_DIR":/data "$ROSBAGS_IMAGE" \
+            --src "/data/${BASENAME}-convert.bag/${BASENAME}-convert.bag" \
+            --dst "/data/${BASENAME}-ros2-lidar"
         CURRENT_OUTPUT=""
     fi
     echo "  -> $OUTPUT_DIR/${BASENAME}-ros2-lidar/"

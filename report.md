@@ -18,7 +18,7 @@
 
 ## 1. libcurl conflict caused by libpcl-dev placement
 
-**Files (all 17 benchmark Dockerfiles + mandeye_to_bag):**
+**Files (all 18 benchmark Dockerfiles + mandeye_to_bag):**
 - `mandeye_to_bag/Dockerfile` (ros1 stage)
 - `benchmark-CT-ICP-to-HDMapping/Dockerfile`
 - `benchmark-DLIO-to-HDMapping/Dockerfile`
@@ -37,6 +37,7 @@
 - `benchmark-GLIM-to-HDMapping/Dockerfile` (ROS 2)
 - `benchmark-KISS-ICP-to-HDMapping/Dockerfile` (ROS 2)
 - `benchmark-RESPLE-to-HDMapping/Dockerfile` (ROS 2)
+- `benchmark-lidar_odometry_ros_wrapper-to-HDMapping/Dockerfile` (ROS 2)
 
 **Symptom:** Docker build fails at step 5/19 with:
 ```

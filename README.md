@@ -91,6 +91,7 @@ The input dataset (`reg-1.bag`) uses Livox `CustomMsg`. Different algorithms exp
 | 15 | [GenZ-ICP](https://github.com/MapsHD/benchmark-GenZ-ICP-to-HDMapping) | 2025 | RA-L | 2 | PointCloud2 ROS2 | `data/reg-1-ros2` | `--ros1 --ros2` | [link](https://youtu.be/vgGkucOBVg4) |
 | 16 | [GLIM](https://github.com/MapsHD/benchmark-GLIM-to-HDMapping) | 2024 | arXiv | 2 | PointCloud2 ROS2 | `data/reg-1-ros2` | `--ros1 --ros2` | [link](https://youtu.be/zyZDJECqOG0) |
 | 17 | [RESPLE](https://github.com/MapsHD/benchmark-RESPLE-to-HDMapping) | 2025 | RA-L | 2 | Livox CustomMsg ROS2 | `data/reg-1-ros2-lidar` | `--livox-ros2` | [link](https://youtu.be/5PAB4xJmMoo) |
+| 18 | [lidar_odometry_ros_wrapper](https://github.com/MapsHD/benchmark-lidar_odometry_ros_wrapper-to-HDMapping) | 2025 | RA-L | 2 | PointCloud2 ROS2 | `data/reg-1-ros2` | `--ros1 --ros2` | [link](https://youtu.be/w233P_MZMWk) |
 
 ## Running a Benchmark
 
@@ -289,6 +290,17 @@ cd ~/hdmapping-benchmark
 ```
 </details>
 
+<details>
+<summary>18. lidar_odometry_ros_wrapper</summary>
+
+```bash
+# Requires: ./prepare_benchmark_data.sh --ros1 --ros2 data/reg-1.bag
+cd ~/hdmapping-benchmark/benchmarks && git clone https://github.com/MapsHD/benchmark-lidar_odometry_ros_wrapper-to-HDMapping.git --recursive
+cd ~/hdmapping-benchmark
+./run_benchmark.sh benchmarks/benchmark-lidar_odometry_ros_wrapper-to-HDMapping data/reg-1-ros2
+```
+</details>
+
 ### Expected Output
 
 Each benchmark produces a folder `output_hdmapping-XXXX/` containing:
@@ -327,6 +339,7 @@ order does not matter — each `run_benchmark.sh` call will skip the build step
 ./run_benchmark.sh --build-only benchmarks/benchmark-GenZ-ICP-to-HDMapping &
 ./run_benchmark.sh --build-only benchmarks/benchmark-GLIM-to-HDMapping &
 ./run_benchmark.sh --build-only benchmarks/benchmark-RESPLE-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-lidar_odometry_ros_wrapper-to-HDMapping &
 wait
 ```
 
@@ -349,14 +362,15 @@ wait
 ./run_benchmark.sh benchmarks/benchmark-KISS-ICP-to-HDMapping    data/reg-1-ros2; \
 ./run_benchmark.sh benchmarks/benchmark-GenZ-ICP-to-HDMapping    data/reg-1-ros2; \
 ./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping        data/reg-1-ros2; \
-./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping      data/reg-1-ros2-lidar
+./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping      data/reg-1-ros2-lidar; \
+./run_benchmark.sh benchmarks/benchmark-lidar_odometry_ros_wrapper-to-HDMapping data/reg-1-ros2
 ```
 
 > Using `;` instead of `&&` ensures that all benchmarks run even if some fail.
 
 ## Recommended Execution Order
 
-Running all 17 benchmarks takes time due to Docker builds. If images were pre-built
+Running all 18 benchmarks takes time due to Docker builds. If images were pre-built
 (see [Pre-building Docker Images](#pre-building-docker-images)), the order does not matter.
 Otherwise, to maximize Docker layer cache reuse during sequential build+run,
 group benchmarks by base image and run them in this order:
@@ -390,6 +404,7 @@ group benchmarks by base image and run them in this order:
 ./run_benchmark.sh benchmarks/benchmark-KISS-ICP-to-HDMapping    data/reg-1-ros2
 ./run_benchmark.sh benchmarks/benchmark-GenZ-ICP-to-HDMapping    data/reg-1-ros2
 ./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping        data/reg-1-ros2
+./run_benchmark.sh benchmarks/benchmark-lidar_odometry_ros_wrapper-to-HDMapping data/reg-1-ros2
 ```
 
 **Group 4 — ROS2 Humble, Livox CustomMsg** (requires `--livox-ros2`):
