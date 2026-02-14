@@ -300,10 +300,14 @@ Each benchmark produces a folder `output_hdmapping-XXXX/` containing:
 
 Open with [HDMapping](https://github.com/MapsHD/HDMapping) `multi_view_tls_registration_step_2`.
 
-## Pre-building Docker Images
+## Pre-building and Running All Benchmarks
 
-Before running benchmarks, you can pre-build all Docker images in parallel using `--build-only`.
-No input data is required for building.
+The recommended workflow is to first pre-build all Docker images in parallel,
+then run all benchmarks sequentially. When images are pre-built, the execution
+order does not matter — each `run_benchmark.sh` call will skip the build step
+(image already exists) and only run the benchmark.
+
+**Step 1: Pre-build all images in parallel** (no input data needed):
 
 ```bash
 ./run_benchmark.sh --build-only benchmarks/benchmark-FAST-LIO-to-HDMapping &
@@ -325,6 +329,30 @@ No input data is required for building.
 ./run_benchmark.sh --build-only benchmarks/benchmark-RESPLE-to-HDMapping &
 wait
 ```
+
+**Step 2: Run all benchmarks sequentially** (order does not matter):
+
+```bash
+./run_benchmark.sh benchmarks/benchmark-FAST-LIO-to-HDMapping    data/reg-1.bag; \
+./run_benchmark.sh benchmarks/benchmark-Faster-LIO-to-HDMapping  data/reg-1.bag; \
+./run_benchmark.sh benchmarks/benchmark-VoxelMap-to-HDMapping    data/reg-1.bag; \
+./run_benchmark.sh benchmarks/benchmark-Point-LIO-to-HDMapping   data/reg-1.bag; \
+./run_benchmark.sh benchmarks/benchmark-iG-LIO-to-HDMapping      data/reg-1.bag; \
+./run_benchmark.sh benchmarks/benchmark-I2EKF-LO-to-HDMapping    data/reg-1.bag; \
+./run_benchmark.sh benchmarks/benchmark-SLICT-to-HDMapping       data/reg-1.bag; \
+./run_benchmark.sh benchmarks/benchmark-CT-ICP-to-HDMapping      data/reg-1.bag-pc.bag; \
+./run_benchmark.sh benchmarks/benchmark-DLO-to-HDMapping         data/reg-1.bag-pc.bag; \
+./run_benchmark.sh benchmarks/benchmark-DLIO-to-HDMapping        data/reg-1.bag-pc.bag; \
+./run_benchmark.sh benchmarks/benchmark-LIO-EKF-to-HDMapping     data/reg-1.bag-pc.bag; \
+./run_benchmark.sh benchmarks/benchmark-LOAM-Livox-to-HDMapping  data/reg-1.bag-pc.bag; \
+./run_benchmark.sh benchmarks/benchmark-LeGO-LOAM-to-HDMapping   data/reg-1.bag-pc.bag; \
+./run_benchmark.sh benchmarks/benchmark-KISS-ICP-to-HDMapping    data/reg-1-ros2; \
+./run_benchmark.sh benchmarks/benchmark-GenZ-ICP-to-HDMapping    data/reg-1-ros2; \
+./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping        data/reg-1-ros2; \
+./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping      data/reg-1-ros2-lidar
+```
+
+> Using `;` instead of `&&` ensures that all benchmarks run even if some fail.
 
 ## Recommended Execution Order
 
