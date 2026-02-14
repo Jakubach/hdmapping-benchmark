@@ -94,7 +94,9 @@ The input dataset (`reg-1.bag`) uses Livox `CustomMsg`. Different algorithms exp
 
 ## Recommended Execution Order
 
-Running all 17 benchmarks takes time due to Docker builds. To maximize Docker layer cache reuse,
+Running all 17 benchmarks takes time due to Docker builds. If images were pre-built
+(see [Pre-building Docker Images](#pre-building-docker-images)), the order does not matter.
+Otherwise, to maximize Docker layer cache reuse during sequential build+run,
 group benchmarks by base image and run them in this order:
 
 **Group 1 — ROS1 Noetic, Livox CustomMsg** (no data conversion needed):
@@ -134,9 +136,36 @@ group benchmarks by base image and run them in this order:
 ./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping      data/reg-1-ros2-lidar
 ```
 
-> **Tip:** Within each group the Noetic/Humble base layers are cached, so only the
+> **Tip:** This grouping matters only when building and running together (without pre-build).
+> Within each group the Noetic/Humble base layers are cached, so only the
 > algorithm-specific layers need to be built. Switching between groups invalidates
-> the base image cache.
+> the base image cache. If you pre-built all images, you can run benchmarks in any order.
+
+## Pre-building Docker Images
+
+Before running benchmarks, you can pre-build all Docker images in parallel using `--build-only`.
+No input data is required for building.
+
+```bash
+./run_benchmark.sh --build-only benchmarks/benchmark-FAST-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-Faster-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-VoxelMap-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-Point-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-iG-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-I2EKF-LO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-SLICT-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-CT-ICP-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-DLO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-DLIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-LIO-EKF-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-LOAM-Livox-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-LeGO-LOAM-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-KISS-ICP-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-GenZ-ICP-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-GLIM-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-RESPLE-to-HDMapping &
+wait
+```
 
 ## Running a Benchmark
 
@@ -152,27 +181,6 @@ Each benchmark uses the `Bunker-DVI-Dataset-reg-1` branch with Docker-based work
 | `<benchmark_dir>` | Path to a `benchmark-*-to-HDMapping` repo |
 | `<input>` | Input bag file or directory (see table above; not needed with `--build-only`) |
 | `[output_dir]` | Output directory for results (default: `outputs/`) |
-
-### Parallel Builds
-
-Benchmarks cannot run in parallel (shared `/clock` topic and network conflicts with `--network host`),
-but Docker images can be built in parallel using `--build-only`:
-
-```bash
-# Build all images in parallel (no input data needed)
-./run_benchmark.sh --build-only benchmarks/benchmark-FAST-LIO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-Faster-LIO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-VoxelMap-to-HDMapping &
-wait
-
-# Then run sequentially
-./run_benchmark.sh benchmarks/benchmark-FAST-LIO-to-HDMapping   data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-Faster-LIO-to-HDMapping data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-VoxelMap-to-HDMapping   data/reg-1.bag
-```
-
-This is especially useful when rebuilding images after Dockerfile fixes, as it
-reduces the total build time significantly.
 
 ### Per-Benchmark Commands
 
