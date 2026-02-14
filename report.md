@@ -148,3 +148,80 @@ Docker's overlay filesystem cannot remove directories created in a previous laye
      cmake .. -DCMAKE_CXX_STANDARD=14 && \
      make  && make install
 ```
+
+---
+
+## 4. iG-LIO: rviz `required="true"` kills roslaunch in headless Docker
+
+**Files:** `benchmark-iG-LIO-to-HDMapping/src/ig_lio/launch/lio_avia.launch` (and 5 other launch files)
+
+**Symptom:** Container starts, rosbag play/record begin, but ig_lio_node never appears in `rosnode list`. The roslaunch panel shows:
+```
+REQUIRED process [rviz-3] has died!
+process has died [pid 208, exit code -11, cmd /opt/ros/noetic/lib/rviz/rviz ...]
+Initiating shutdown!
+```
+The controller panel hangs at `[control] waiting for play end` because rosbag play runs but no algorithm processes the data.
+
+**Root cause:** The launch file starts rviz with `required="true"`. In a headless Docker container (no display/GPU), rviz crashes with SIGSEGV (exit code -11). Because it is marked as `required`, roslaunch kills **all** nodes — including `ig_lio_node`.
+
+**Fix:** Change `required="true"` to `required="false"` on all rviz nodes, or comment them out entirely. A generic patch was added to `run_benchmark.sh` to do this automatically before `docker build`:
+```bash
+# --- Patch: disable rviz required="true" for headless Docker ---
+find "$REPO_DIR" -name "*.launch" -exec \
+    sed -i 's/\(pkg="rviz".*\)required="true"/\1required="false"/' {} + 2>/dev/null || true
+```
+
+**Affected launch files:**
+- `lio_avia.launch`
+- `lio_bg_avia.launch`
+- `lio_bg_velodyne.launch`
+- `lio_ncd.launch`
+- `lio_nclt.launch`
+- `lio_ulhk.launch`
+
+---
+
+## 5. iG-LIO: permission denied on result directory + hardcoded host path
+
+**Files:**
+- `benchmark-iG-LIO-to-HDMapping/Dockerfile`
+- `benchmark-iG-LIO-to-HDMapping/docker_session_run-ros1-ig-lio.sh`
+
+**Symptom:** After fixing the rviz issue, ig_lio_node starts but immediately exits with:
+```
+Could not create logging file: Permission denied
+COULD NOT CREATE A LOGGINGFILE 20260214-175452.203!
+E0214 17:54:52.827517   203 ig_lio_node.cpp:707] failed to open: "/ros_ws/src/ig_lio/result/lio_odom.txt"
+[ig_lio_node-2] process has finished cleanly
+```
+
+**Root cause (three issues):**
+
+1. **Dockerfile:** The workspace `/ros_ws` is created and built as `root`, then user `ros` (UID 1000) is created. The container runs as `-u 1000:1000` but `/ros_ws/src/ig_lio/result/` is owned by root — `ros` cannot write to it.
+
+2. **Run script:** `RESULT_IG_LIO_HOST_PATH` is hardcoded to `/home/janusz/hdmapping-benchmark/...` — a path from another developer's machine that doesn't exist on the current host.
+
+3. **Run script:** `mkdir -p "$RESULT_IG_LIO_PATH"` references an undefined variable (should be `$RESULT_IG_LIO_HOST_PATH`).
+
+**Fix:**
+
+a) Dockerfile — grant ownership to user `ros`:
+```diff
+ RUN groupadd -g $GID ros && \
+     useradd -m -u $UID -g $GID -s /bin/bash ros
+ WORKDIR /ros_ws
++
++RUN chown -R ros:ros /ros_ws
+```
+
+b) Run script — use relative path and fix variable name:
+```diff
+-RESULT_IG_LIO_HOST_PATH="/home/janusz/hdmapping-benchmark/benchmark-iG-LIO-to-HDMapping/src/ig_lio/result"
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++RESULT_IG_LIO_HOST_PATH="$SCRIPT_DIR/src/ig_lio/result"
+```
+```diff
+-mkdir -p "$RESULT_IG_LIO_PATH"
++mkdir -p "$RESULT_IG_LIO_HOST_PATH"
+```

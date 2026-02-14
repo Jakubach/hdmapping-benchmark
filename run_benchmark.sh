@@ -108,6 +108,10 @@ else
     DOCKER_TAG="${ALGO}_noetic"
 fi
 
+# --- Patch: disable rviz required="true" for headless Docker ---
+find "$REPO_DIR" -name "*.launch" -exec \
+    sed -i 's/\(pkg="rviz".*\)required="true"/\1required="false"/' {} + 2>/dev/null || true
+
 # --- Build ---
 echo ">> Building Docker image: $DOCKER_TAG ..."
 if ! docker build -t "$DOCKER_TAG" .; then
