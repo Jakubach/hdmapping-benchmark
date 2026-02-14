@@ -4,6 +4,9 @@ data/
 # Benchmark results (generated per-run)
 outputs/
 
+# Local-only scripts
+monitor.sh
+
 # Cloned external repositories (instructions in README)
 benchmarks/
 livox_bag_aggregate/
