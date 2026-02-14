@@ -106,15 +106,15 @@ group benchmarks by base image and run them in this order:
 ./run_benchmark.sh benchmarks/benchmark-Point-LIO-to-HDMapping   data/reg-1.bag
 ./run_benchmark.sh benchmarks/benchmark-iG-LIO-to-HDMapping      data/reg-1.bag
 ./run_benchmark.sh benchmarks/benchmark-I2EKF-LO-to-HDMapping    data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-SLICT-to-HDMapping        data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-SLICT-to-HDMapping       data/reg-1.bag
 ```
 
 **Group 2 — ROS1 Noetic, PointCloud2** (requires `--ros1`):
 
 ```bash
 ./run_benchmark.sh benchmarks/benchmark-CT-ICP-to-HDMapping      data/reg-1.bag-pc.bag
-./run_benchmark.sh benchmarks/benchmark-DLO-to-HDMapping          data/reg-1.bag-pc.bag
-./run_benchmark.sh benchmarks/benchmark-DLIO-to-HDMapping         data/reg-1.bag-pc.bag
+./run_benchmark.sh benchmarks/benchmark-DLO-to-HDMapping         data/reg-1.bag-pc.bag
+./run_benchmark.sh benchmarks/benchmark-DLIO-to-HDMapping        data/reg-1.bag-pc.bag
 ./run_benchmark.sh benchmarks/benchmark-LIO-EKF-to-HDMapping     data/reg-1.bag-pc.bag
 ./run_benchmark.sh benchmarks/benchmark-LOAM-Livox-to-HDMapping  data/reg-1.bag-pc.bag
 ./run_benchmark.sh benchmarks/benchmark-LeGO-LOAM-to-HDMapping   data/reg-1.bag-pc.bag
@@ -124,8 +124,8 @@ group benchmarks by base image and run them in this order:
 
 ```bash
 ./run_benchmark.sh benchmarks/benchmark-KISS-ICP-to-HDMapping    data/reg-1-ros2
-./run_benchmark.sh benchmarks/benchmark-GenZ-ICP-to-HDMapping     data/reg-1-ros2
-./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping         data/reg-1-ros2
+./run_benchmark.sh benchmarks/benchmark-GenZ-ICP-to-HDMapping    data/reg-1-ros2
+./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping        data/reg-1-ros2
 ```
 
 **Group 4 — ROS2 Humble, RESPLE-specific** (requires `--resple`):
