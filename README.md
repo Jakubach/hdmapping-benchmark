@@ -155,7 +155,7 @@ Each benchmark uses the `Bunker-DVI-Dataset-reg-1` branch with Docker-based work
 
 ### Parallel Builds
 
-Benchmarks cannot run in parallel (ROS master port conflicts, shared `/clock` topic),
+Benchmarks cannot run in parallel (shared `/clock` topic and network conflicts with `--network host`),
 but Docker images can be built in parallel using `--build-only`:
 
 ```bash
