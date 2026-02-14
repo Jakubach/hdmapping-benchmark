@@ -92,81 +92,6 @@ The input dataset (`reg-1.bag`) uses Livox `CustomMsg`. Different algorithms exp
 | 16 | [GLIM](https://github.com/MapsHD/benchmark-GLIM-to-HDMapping) | 2024 | arXiv | 2 | PointCloud2 ROS2 | `data/reg-1-ros2` | `--ros1 --ros2` | [link](https://youtu.be/zyZDJECqOG0) |
 | 17 | [RESPLE](https://github.com/MapsHD/benchmark-RESPLE-to-HDMapping) | 2025 | RA-L | 2 | Livox CustomMsg ROS2 | `data/reg-1-ros2-lidar` | `--livox-ros2` | [link](https://youtu.be/5PAB4xJmMoo) |
 
-## Recommended Execution Order
-
-Running all 17 benchmarks takes time due to Docker builds. If images were pre-built
-(see [Pre-building Docker Images](#pre-building-docker-images)), the order does not matter.
-Otherwise, to maximize Docker layer cache reuse during sequential build+run,
-group benchmarks by base image and run them in this order:
-
-**Group 1 — ROS1 Noetic, Livox CustomMsg** (no data conversion needed):
-
-```bash
-./run_benchmark.sh benchmarks/benchmark-FAST-LIO-to-HDMapping    data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-Faster-LIO-to-HDMapping  data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-VoxelMap-to-HDMapping    data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-Point-LIO-to-HDMapping   data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-iG-LIO-to-HDMapping      data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-I2EKF-LO-to-HDMapping    data/reg-1.bag
-./run_benchmark.sh benchmarks/benchmark-SLICT-to-HDMapping       data/reg-1.bag
-```
-
-**Group 2 — ROS1 Noetic, PointCloud2** (requires `--ros1`):
-
-```bash
-./run_benchmark.sh benchmarks/benchmark-CT-ICP-to-HDMapping      data/reg-1.bag-pc.bag
-./run_benchmark.sh benchmarks/benchmark-DLO-to-HDMapping         data/reg-1.bag-pc.bag
-./run_benchmark.sh benchmarks/benchmark-DLIO-to-HDMapping        data/reg-1.bag-pc.bag
-./run_benchmark.sh benchmarks/benchmark-LIO-EKF-to-HDMapping     data/reg-1.bag-pc.bag
-./run_benchmark.sh benchmarks/benchmark-LOAM-Livox-to-HDMapping  data/reg-1.bag-pc.bag
-./run_benchmark.sh benchmarks/benchmark-LeGO-LOAM-to-HDMapping   data/reg-1.bag-pc.bag
-```
-
-**Group 3 — ROS2 Humble, PointCloud2** (requires `--ros1 --ros2`):
-
-```bash
-./run_benchmark.sh benchmarks/benchmark-KISS-ICP-to-HDMapping    data/reg-1-ros2
-./run_benchmark.sh benchmarks/benchmark-GenZ-ICP-to-HDMapping    data/reg-1-ros2
-./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping        data/reg-1-ros2
-```
-
-**Group 4 — ROS2 Humble, Livox CustomMsg** (requires `--livox-ros2`):
-
-```bash
-./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping      data/reg-1-ros2-lidar
-```
-
-> **Tip:** This grouping matters only when building and running together (without pre-build).
-> Within each group the Noetic/Humble base layers are cached, so only the
-> algorithm-specific layers need to be built. Switching between groups invalidates
-> the base image cache. If you pre-built all images, you can run benchmarks in any order.
-
-## Pre-building Docker Images
-
-Before running benchmarks, you can pre-build all Docker images in parallel using `--build-only`.
-No input data is required for building.
-
-```bash
-./run_benchmark.sh --build-only benchmarks/benchmark-FAST-LIO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-Faster-LIO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-VoxelMap-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-Point-LIO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-iG-LIO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-I2EKF-LO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-SLICT-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-CT-ICP-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-DLO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-DLIO-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-LIO-EKF-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-LOAM-Livox-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-LeGO-LOAM-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-KISS-ICP-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-GenZ-ICP-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-GLIM-to-HDMapping &
-./run_benchmark.sh --build-only benchmarks/benchmark-RESPLE-to-HDMapping &
-wait
-```
-
 ## Running a Benchmark
 
 Each benchmark uses the `Bunker-DVI-Dataset-reg-1` branch with Docker-based workflow.
@@ -374,6 +299,81 @@ Each benchmark produces a folder `output_hdmapping-XXXX/` containing:
 - `trajectory_lio_*.csv`
 
 Open with [HDMapping](https://github.com/MapsHD/HDMapping) `multi_view_tls_registration_step_2`.
+
+## Pre-building Docker Images
+
+Before running benchmarks, you can pre-build all Docker images in parallel using `--build-only`.
+No input data is required for building.
+
+```bash
+./run_benchmark.sh --build-only benchmarks/benchmark-FAST-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-Faster-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-VoxelMap-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-Point-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-iG-LIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-I2EKF-LO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-SLICT-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-CT-ICP-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-DLO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-DLIO-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-LIO-EKF-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-LOAM-Livox-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-LeGO-LOAM-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-KISS-ICP-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-GenZ-ICP-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-GLIM-to-HDMapping &
+./run_benchmark.sh --build-only benchmarks/benchmark-RESPLE-to-HDMapping &
+wait
+```
+
+## Recommended Execution Order
+
+Running all 17 benchmarks takes time due to Docker builds. If images were pre-built
+(see [Pre-building Docker Images](#pre-building-docker-images)), the order does not matter.
+Otherwise, to maximize Docker layer cache reuse during sequential build+run,
+group benchmarks by base image and run them in this order:
+
+**Group 1 — ROS1 Noetic, Livox CustomMsg** (no data conversion needed):
+
+```bash
+./run_benchmark.sh benchmarks/benchmark-FAST-LIO-to-HDMapping    data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-Faster-LIO-to-HDMapping  data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-VoxelMap-to-HDMapping    data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-Point-LIO-to-HDMapping   data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-iG-LIO-to-HDMapping      data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-I2EKF-LO-to-HDMapping    data/reg-1.bag
+./run_benchmark.sh benchmarks/benchmark-SLICT-to-HDMapping       data/reg-1.bag
+```
+
+**Group 2 — ROS1 Noetic, PointCloud2** (requires `--ros1`):
+
+```bash
+./run_benchmark.sh benchmarks/benchmark-CT-ICP-to-HDMapping      data/reg-1.bag-pc.bag
+./run_benchmark.sh benchmarks/benchmark-DLO-to-HDMapping         data/reg-1.bag-pc.bag
+./run_benchmark.sh benchmarks/benchmark-DLIO-to-HDMapping        data/reg-1.bag-pc.bag
+./run_benchmark.sh benchmarks/benchmark-LIO-EKF-to-HDMapping     data/reg-1.bag-pc.bag
+./run_benchmark.sh benchmarks/benchmark-LOAM-Livox-to-HDMapping  data/reg-1.bag-pc.bag
+./run_benchmark.sh benchmarks/benchmark-LeGO-LOAM-to-HDMapping   data/reg-1.bag-pc.bag
+```
+
+**Group 3 — ROS2 Humble, PointCloud2** (requires `--ros1 --ros2`):
+
+```bash
+./run_benchmark.sh benchmarks/benchmark-KISS-ICP-to-HDMapping    data/reg-1-ros2
+./run_benchmark.sh benchmarks/benchmark-GenZ-ICP-to-HDMapping    data/reg-1-ros2
+./run_benchmark.sh benchmarks/benchmark-GLIM-to-HDMapping        data/reg-1-ros2
+```
+
+**Group 4 — ROS2 Humble, Livox CustomMsg** (requires `--livox-ros2`):
+
+```bash
+./run_benchmark.sh benchmarks/benchmark-RESPLE-to-HDMapping      data/reg-1-ros2-lidar
+```
+
+> **Tip:** This grouping matters only when building and running together (without pre-build).
+> Within each group the Noetic/Humble base layers are cached, so only the
+> algorithm-specific layers need to be built. Switching between groups invalidates
+> the base image cache. If you pre-built all images, you can run benchmarks in any order.
 
 ## Directory Structure
 
