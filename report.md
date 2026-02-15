@@ -221,7 +221,51 @@ find "$REPO_DIR" -name "*.launch" -exec \
 
 ---
 
-## 6. iG-LIO: permission denied on result directory + hardcoded host path
+## 6. GLIM: sensor configuration, headless mode and auto-quit
+
+**Files:**
+- `benchmark-GLIM-to-HDMapping/Dockerfile`
+- `benchmark-GLIM-to-HDMapping/docker_session_run-ros2-glim.sh`
+
+**Symptom:** GLIM hangs indefinitely after processing the bag, or produces poor results when not using config for Livox.
+
+**Root cause (four issues):**
+
+1. **`acc_scale: 1.0`** — Livox MID360 IMU outputs accelerometer data in g. GLIM default is for sensors outputting m/s². Requires `acc_scale: 9.80665`. Source: comment in [`glim/config/config_ros.json`](https://github.com/koide3/glim/blob/main/config/config_ros.json): *"acc_scale: Accelerometer scale factor (Set to 9.80665 for Livox sensors)"*.
+
+2. **`T_lidar_imu` for Ouster OS0** — Default `[0.006, -0.012, 0.008, 0, 0, 0, 1]` is wrong for Livox MID360 which needs identity `[0, 0, 0, 0, 0, 0, 1]`. Source: comment in [`glim/config/config_sensors.json`](https://github.com/koide3/glim/blob/main/config/config_sensors.json): *"Livox Avia: [0, 0, 0, 0, 0, 0, 1]"*.
+
+3. **`libstandard_viewer.so` crashes in headless Docker** — The iridescence viewer requires OpenGL. In headless containers it crashes with MESA errors. Must be removed. Note: `librviz_viewer.so` must be kept — it publishes the output topics (`aligned_points_corrected`, `odom_corrected`).
+
+4. **No auto-quit** — `glim_rosbag` enters `rclcpp::spin()` after reading the bag and never exits. Adding `--ros-args -p auto_quit:=true` makes it exit after the pipeline (odometry, local mapping, global mapping) completes.
+
+**Fix (Dockerfile):**
+
+```diff
+ RUN sed -i \
+   -e 's|"imu_topic": "/os_cloud_node/imu",|"imu_topic": "/livox/imu",|' \
+   -e 's|"points_topic": "/os_cloud_node/points",|"points_topic": "/livox/pointcloud" ,|' \
++  -e 's|"acc_scale": 1.0,|"acc_scale": 9.80665,|' \
++  -e '/"libstandard_viewer.so"/d' \
+   src/glim/config/config_ros.json
+
++RUN sed -i \
++  -e 's|0.006, -0.012, 0.008, 0.0, 0.0, 0.0, 1.0|0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0|' \
++  src/glim/config/config_sensors.json
+```
+
+**Fix (run script):**
+
+```diff
+-ros2 run glim_ros glim_rosbag $DATASET_CONTAINER_PATH --clock
++ros2 run glim_ros glim_rosbag $DATASET_CONTAINER_PATH --ros-args -p auto_quit:=true
+```
+
+Also added `rm -rf` of old recording directory before `ros2 bag record` to prevent failure when re-running.
+
+---
+
+## 7. iG-LIO: permission denied on result directory + hardcoded host path
 
 **Files:**
 - `benchmark-iG-LIO-to-HDMapping/Dockerfile`
