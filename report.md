@@ -233,7 +233,7 @@ find "$REPO_DIR" -name "*.launch" -exec \
 
 1. **`acc_scale: 1.0`** — Livox MID360 IMU outputs accelerometer data in g. GLIM default is for sensors outputting m/s². Requires `acc_scale: 9.80665`. Source: comment in [`glim/config/config_ros.json`](https://github.com/koide3/glim/blob/master/config/config_ros.json): *"acc_scale: Accelerometer scale factor (Set to 9.80665 for Livox sensors)"*.
 
-2. **`T_lidar_imu` for Ouster OS0** — Default `[0.006, -0.012, 0.008, 0, 0, 0, 1]` is wrong for Livox MID360 which needs identity `[0, 0, 0, 0, 0, 0, 1]`. Source: comment in [`glim/config/config_sensors.json`](https://github.com/koide3/glim/blob/master/config/config_sensors.json): *"Livox Avia: [0, 0, 0, 0, 0, 0, 1]"*.
+2. **`T_lidar_imu` for Ouster OS0** — Default `[0.006, -0.012, 0.008, 0, 0, 0, 1]` is wrong for Livox MID360 which needs `[-0.011, -0.02329, 0.04412, 0, 0, 0, 1]` (identity rotation, non-zero translation). Source: FAST-LIO [`config/mid360.yaml`](https://github.com/hku-mars/FAST_LIO/blob/main/config/mid360.yaml) extrinsic_T `[-0.011, -0.02329, 0.04412]`, confirmed by Point-LIO and RESPLE configs in this benchmark. Note: GLIM's own [`config_sensors.json`](https://github.com/koide3/glim/blob/master/config/config_sensors.json) only lists *"Livox Avia: [0, 0, 0, 0, 0, 0, 1]"* (identity) which is incorrect for MID360.
 
 3. **`libstandard_viewer.so` crashes in headless Docker** — The iridescence viewer requires OpenGL. In headless containers it crashes with MESA errors. Must be removed. Note: `librviz_viewer.so` must be kept — it publishes the output topics (`aligned_points_corrected`, `odom_corrected`).
 
@@ -250,7 +250,7 @@ find "$REPO_DIR" -name "*.launch" -exec \
    src/glim/config/config_ros.json
 
 +RUN sed -i \
-+  -e 's|0.006, -0.012, 0.008, 0.0, 0.0, 0.0, 1.0|0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0|' \
++  -e 's|0.006, -0.012, 0.008, 0.0, 0.0, 0.0, 1.0|-0.011, -0.02329, 0.04412, 0.0, 0.0, 0.0, 1.0|' \
 +  src/glim/config/config_sensors.json
 ```
 
