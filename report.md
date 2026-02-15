@@ -254,7 +254,7 @@ find "$REPO_DIR" -name "*.launch" -exec \
 +  src/glim/config/config_sensors.json
 ```
 
-**Fix (run script):**
+**Fix (`docker_session_run-ros2-glim.sh`):**
 
 ```diff
 -ros2 run glim_ros glim_rosbag $DATASET_CONTAINER_PATH --clock
