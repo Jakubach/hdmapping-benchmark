@@ -50,7 +50,7 @@ Step 3 installs `libpcl-dev` which pulls in `libcurl4-gnutls-dev`.
 Step 5 installs `ros-noetic-desktop-full` which needs `libcurl4-openssl-dev`.
 dpkg tries to remove `libcurl4-gnutls-dev` across layers and fails.
 
-**Fix:** Move `libpcl-dev` from the first `apt-get install` to the second (after ROS repo is added), so both packages are resolved in a single dpkg transaction.
+**Fix:** Move `libpcl-dev` (and any other packages that pull in `libcurl4-gnutls-dev`, such as `libflann-dev` and `libvtk7-dev` in LIO-EKF) from the first `apt-get install` to after the ROS installation, so both packages are resolved in a single dpkg transaction.
 
 ```diff
  RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -73,6 +73,8 @@ dpkg tries to remove `libcurl4-gnutls-dev` across layers and fails.
 +    libpcl-dev \
      && rm -rf /var/lib/apt/lists/*
 ```
+
+**Note:** In `benchmark-LIO-EKF-to-HDMapping/Dockerfile`, `libflann-dev` and `libvtk7-dev` also transitively depend on `libcurl4-gnutls-dev` and must be moved to a separate `apt-get install` after the ROS installation alongside `libpcl-dev`.
 
 ---
 
