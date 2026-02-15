@@ -239,7 +239,7 @@ find "$REPO_DIR" -name "*.launch" -exec \
 
 4. **No auto-quit** — `glim_rosbag` enters `rclcpp::spin()` after reading the bag and never exits. Adding `--ros-args -p auto_quit:=true` makes it exit after the pipeline (odometry, local mapping, global mapping) completes.
 
-**Fix (Dockerfile):**
+**Fix (`benchmark-GLIM-to-HDMapping/Dockerfile`):**
 
 ```diff
  RUN sed -i \
