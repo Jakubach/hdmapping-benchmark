@@ -261,7 +261,12 @@ find "$REPO_DIR" -name "*.launch" -exec \
 +ros2 run glim_ros glim_rosbag $DATASET_CONTAINER_PATH --ros-args -p auto_quit:=true
 ```
 
-Also added `rm -rf` of old recording directory before `ros2 bag record` to prevent failure when re-running.
+```diff
++rm -rf $BAG_OUTPUT_CONTAINER/$RECORDED_BAG_NAME
+ echo "[record] start"
+ ros2 bag record /glim_ros/aligned_points_corrected /glim_ros/odom_corrected ...
+```
+Added `rm -rf` of old recording directory before `ros2 bag record` to prevent failure when re-running.
 
 ---
 
